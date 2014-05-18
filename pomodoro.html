@@ -1,0 +1,220 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Pomodoro</title>
+    <style>
+     #tomato {
+       width: 400px;
+       height: 400px;
+     }
+    </style>
+  </head>
+  <body onload="init()">
+    <div id="start_timers">
+      <input type="button" value="25 Minutes" onclick="startPomodoro(25*60)">
+      <input type="button" value="5 Minute break" onclick="startBreak(5*60)">
+      <input type="button" value="1 hour break" onclick="startBreak(60*60)">
+    </div>
+    <canvas id="tomato"></canvas>
+    <div id="stop_timers">
+      <input type="button" value="stop" onclick="stopTimer()">
+      <input type="button" value="reset" onclick="clearHistory()">
+    </div>
+    <table id="history"></table>
+    <script>
+     var timer;
+
+     function init() {
+       var history = loadHistory();
+       drawHistory(history);
+       var canvas = document.getElementById('tomato');
+       canvas.width = canvas.clientWidth;
+       canvas.height = canvas.clientHeight;
+       if (localStorage['pomodoroStart'] && localStorage['pomodoroEnd']) {
+         timer = window.setInterval(pomodoroCallback, 50);
+       } else if (localStorage['breakStart'] && localStorage['breakEnd']) {
+         timer = window.setInterval(breakCallback, 50);
+       } else {
+         drawTomato(0, 0);
+       }
+     }
+
+     function loadHistory() {
+       if (localStorage['pomodoroHistory']) {
+         return JSON.parse(localStorage['pomodoroHistory']);
+       } else {
+         return [];
+       }
+     }
+
+     function saveHistory(history) {
+       localStorage['pomodoroHistory'] = JSON.stringify(history);
+     }
+
+     function clearHistory() {
+       localStorage['pomodoroHistory'] = [];
+       localStorage.removeItem('pomodoroStart');
+       localStorage.removeItem('pomodoroEnd');
+       localStorage.removeItem('breakStart');
+       localStorage.removeItem('breakEnd');
+       drawHistory([]);
+       drawTomato(0, 0);
+     }
+
+     function drawHistory(history) {
+       var table = document.getElementById('history');
+       while (table.firstChild) {
+         table.removeChild(table.firstChild);
+       }
+       for (var row in history) {
+         var tr = document.createElement('tr');
+         var td = document.createElement('td');
+         var name = document.createTextNode(history[row][0]);
+         td.appendChild(name);
+         tr.appendChild(td);
+         var td = document.createElement('td');
+         var value = document.createTextNode(formatTime(history[row][1]));
+         td.appendChild(value);
+         tr.appendChild(td);
+         table.appendChild(tr);
+       }
+     }
+
+     function drawTomato(pomodoroTime, breakTime) {
+       var canvas = document.getElementById('tomato');
+       var context = canvas.getContext('2d');
+       var width = context.canvas.width;
+       var height = context.canvas.height;
+       context.clearRect(0, 0, width, height);
+
+       context.beginPath();
+       context.arc(width*0.5, height*0.5, // x, y
+                   width*0.25,             // radius
+                   0, Math.PI*2,           // angles
+                   true);                  // clockwise
+       context.moveTo(width*0.25, height*0.5);
+       context.lineTo(width*0.75, height*0.5);
+       context.moveTo(width*0.5, height*0.5+5);
+       context.lineTo(width*0.5-5, height*0.5+15);
+       context.lineTo(width*0.5+5, height*0.5+15);
+       context.lineTo(width*0.5, height*0.5+5);
+       context.stroke();
+       var text = formatTime(pomodoroTime);
+       context.font = '20pt Calibri';
+       var textSize = context.measureText(text);
+       context.fillText(text, width/2-textSize.width/2, height/2-5);
+       if (breakTime > 0) {
+         context.fillStyle = "white";
+         context.fillRect(width*0.2, height*0.4,
+                          width*0.6, height*0.2);
+         context.fillStyle = "black";
+         var text = "Pause: " + formatTime(breakTime);
+         context.font = '24pt Calibri';
+         var textSize = context.measureText(text);
+         context.fillText(text, width/2-textSize.width/2, height/2+10);
+       }
+     }
+
+     function zeroPad(string, length) {
+       while (string.length < length) {
+         string = "0" + string;
+       }
+       return string;
+     }
+
+     function formatTime(time) {
+       var date = new Date(0, 0, 0, 0, 0, 0, time);
+       if (date.getHours() > 0) {
+         return zeroPad(date.getHours().toFixed(), 2) + ':' +
+                zeroPad(date.getMinutes().toFixed(), 2) + ':' +
+                zeroPad(date.getSeconds().toFixed(), 2);
+       } else {
+         return zeroPad(date.getMinutes().toFixed(), 2) + ':' +
+                zeroPad(date.getSeconds().toFixed(), 2);
+       }
+     }
+
+     function startBreak(seconds) {
+       stopTimer();
+       var startTime = Date.now();
+       var endTime = startTime + seconds*1000;
+       localStorage['breakStart'] = startTime;
+       localStorage['breakEnd'] = endTime;
+       timer = window.setInterval(breakCallback, 50);
+     }
+
+     function breakCallback() {
+       var breakEnd = localStorage['breakEnd'];
+       if (breakEnd === null) {
+         window.clearInterval(timer);
+         return
+       }
+       var remainingTime = Math.floor((breakEnd - Date.now()));
+       if (remainingTime > 0) {
+         drawTomato(0, remainingTime);
+       } else {
+         stopTimer();
+       }
+     }
+
+     function stopBreak() {
+       window.clearInterval(timer);
+       var breakStart = localStorage['breakStart'];
+       var breakEnd = Date.now();
+       var history = loadHistory();
+       history.push(['Pause', breakEnd-breakStart]);
+       saveHistory(history);
+       drawHistory(history);
+       localStorage.removeItem('breakStart');
+       localStorage.removeItem('breakEnd');
+       drawTomato(0, 0);
+     }
+
+     function startPomodoro(seconds) {
+       stopTimer();
+       var startTime = Date.now();
+       var endTime = startTime + seconds*1000;
+       localStorage['pomodoroStart'] = startTime;
+       localStorage['pomodoroEnd'] = endTime;
+       timer = window.setInterval(pomodoroCallback, 50);
+     }
+
+     function pomodoroCallback() {
+       var pomodoroEnd = localStorage['pomodoroEnd'];
+       if (pomodoroEnd === null) {
+         window.clearInterval(timer);
+         return
+       }
+       var remainingTime = Math.floor((pomodoroEnd - Date.now()));
+       if (remainingTime > 0) {
+         drawTomato(remainingTime, 0);
+       } else {
+         stopTimer();
+       }
+     }
+
+     function stopPomodoro() {
+       window.clearInterval(timer);
+       var pomodoroStart = localStorage['pomodoroStart'];
+       var pomodoroEnd = Date.now();
+       var history = loadHistory();
+       history.push(['Pomodoro', pomodoroEnd-pomodoroStart]);
+       saveHistory(history);
+       drawHistory(history);
+       localStorage.removeItem('pomodoroStart');
+       localStorage.removeItem('pomodoroEnd');
+       drawTomato(0, 0);
+     }
+
+     function stopTimer() {
+       clearInterval(timer)
+       if (localStorage['pomodoroStart'] && localStorage['pomodoroEnd']) {
+         stopPomodoro();
+       } else if (localStorage['breakStart'] && localStorage['breakEnd']) {
+         stopBreak();
+       }
+     }
+
+    </script>
+  </body>
+</html>
