@@ -23,6 +23,8 @@
     <table id="history"></table>
     <script>
      var timer;
+     var tomatoImage = new Image();
+     tomatoImage.src = 'tomato.png';
 
      function init() {
        var history = loadHistory();
@@ -85,34 +87,40 @@
        var context = canvas.getContext('2d');
        var width = context.canvas.width;
        var height = context.canvas.height;
+       var centerX = 200;
+       var centerY = 250;
        context.clearRect(0, 0, width, height);
 
-       context.beginPath();
-       context.arc(width*0.5, height*0.5, // x, y
-                   width*0.25,             // radius
-                   0, Math.PI*2,           // angles
-                   true);                  // clockwise
-       context.moveTo(width*0.25, height*0.5);
-       context.lineTo(width*0.75, height*0.5);
-       context.moveTo(width*0.5, height*0.5+5);
-       context.lineTo(width*0.5-5, height*0.5+15);
-       context.lineTo(width*0.5+5, height*0.5+15);
-       context.lineTo(width*0.5, height*0.5+5);
-       context.stroke();
+       context.drawImage(tomatoImage, 0, 0);
+
        var text = formatTime(pomodoroTime);
-       context.font = '20pt Calibri';
+       context.fillStyle = "white";
+       context.font = 'bold 20pt Calibri';
        var textSize = context.measureText(text);
-       context.fillText(text, width/2-textSize.width/2, height/2-5);
+       context.fillText(text, centerX-textSize.width/2, centerY-15);
+
        if (breakTime > 0) {
-         context.fillStyle = "white";
-         context.fillRect(width*0.2, height*0.4,
-                          width*0.6, height*0.2);
+         context.fillStyle = "rgba(255, 255, 255, 0.9)";
+         context.fillRoundedRect(width*0.2, height*0.4,
+                                 width*0.6, height*0.2, 10);
+         context.stroke();
          context.fillStyle = "black";
          var text = "Pause: " + formatTime(breakTime);
          context.font = '24pt Calibri';
          var textSize = context.measureText(text);
          context.fillText(text, width/2-textSize.width/2, height/2+10);
        }
+     }
+
+     CanvasRenderingContext2D.prototype.fillRoundedRect = function (x, y, w, h, radius) {
+       this.beginPath();
+       this.moveTo(x, y+h/2);
+       this.arcTo(x, y+h, x+w/2, y+h, radius);
+       this.arcTo(x+w, y+h, x+w, y+h/2, radius);
+       this.arcTo(x+w, y, x+w/2, y, radius);
+       this.arcTo(x, y, x, y+h/2, radius);
+       this.closePath();
+       this.fill();
      }
 
      function zeroPad(string, length) {
