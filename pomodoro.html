@@ -19,6 +19,23 @@
        margin: 0 auto;
        margin-top: 40px;
      }
+     #break_overlay {
+       position: absolute;
+       width: 230;
+       height: 70px;
+       left: calc(50% - 115px);
+       top: 280px;
+       font-family: Calibri, sans-serif;
+       font-size: 20px;
+       text-align: Center;
+       line-height: 70px;
+       vertical-align: middle;
+       background-color: rgba(255,255,255,0.9);
+       border: 2px solid #AAA;
+       border-radius: 10px;
+       color: black;
+       visibility: hidden;
+     }
      input {
        background-color: #FFF5F0;
        padding: 5px 10px;
@@ -53,7 +70,11 @@
       <input type="number" value="5" style="width:100px" id="breaktime">
     </div>
     <audio src="ding.mp3" id="ding"></audio>
-    <canvas id="tomato"></canvas>
+    <div>
+      <canvas id="tomato"></canvas>
+      <div id="break_overlay">
+      </div>
+    </div>
     <div id="stop_timers">
       <input type="button" value="stop" onclick="stopTimer()">
       <input type="button" value="reset" onclick="clearHistory()">
@@ -163,23 +184,41 @@
 
        context.drawImage(tomatoImage, 0, 0);
 
-       var text = formatTime(pomodoroTime);
-       context.fillStyle = "white";
-       context.font = 'bold 20pt Calibri';
-       var textSize = context.measureText(text);
-       context.fillText(text, centerX-textSize.width/2, centerY-15);
+       var minTime = Math.ceil(pomodoroTime/1000/60/5 - 3)*5;
+       var maxTime = Math.floor(pomodoroTime/1000/60/5 + 3)*5;
+       for (var minutes=minTime; minutes<=maxTime; minutes++) {
+         var width = Math.cos((minutes-pomodoroTime/1000/60)/15*Math.PI/2);
+         var pos = Math.sin((minutes-pomodoroTime/1000/60)/15*Math.PI/2);
 
-       if (breakTime > 0) {
-         context.fillStyle = "rgba(255, 255, 255, 0.9)";
-         context.fillRoundedRect(width*0.2, height*0.4,
-                                 width*0.6, height*0.2, 10);
-         context.stroke();
-         context.fillStyle = "black";
-         var text = "Pause: " + formatTime(breakTime);
-         context.font = '24pt Calibri';
-         var textSize = context.measureText(text);
-         context.fillText(text, width/2-textSize.width/2, height/2+10);
+         context.save();
+         context.fillStyle = "white";
+         context.font = 'bold 20pt Calibri';
+         context.translate(centerX, centerY-65);
+         context.translate(pos*125, Math.abs(width)*50)
+         context.scale(width, 1);
+         if (minutes % 5 === 0) {
+           if (minutes < 0) {
+             var text = (minutes + 60).toString();
+           } else {
+             var text = minutes.toString();
+           }
+           context.fillRect(-3, +7, 6, 10);
+           context.rotate(-pos/2.5, 1)
+           var textSize = context.measureText(text);
+           context.fillText(text, -textSize.width/2, 0);
+         } else if (minutes < 15 && minutes > 0) {
+           context.fillRect(-2, +9, 4, 8);
+         }
+         context.restore();
        }
+
+       context.fillStyle = "white";
+       context.beginPath();
+       context.moveTo(centerX, centerY+10);
+       context.lineTo(centerX-10, centerY+25);
+       context.lineTo(centerX+10, centerY+25);
+       context.lineTo(centerX, centerY+10);
+       context.fill();
      }
 
      CanvasRenderingContext2D.prototype.fillRoundedRect = function (x, y, w, h, radius) {
@@ -223,6 +262,7 @@
        localStorage['breakStart'] = startTime;
        localStorage['breakEnd'] = endTime;
        timer = window.setInterval(breakCallback, 50);
+       document.getElementById('break_overlay').style.visibility = "visible";
      }
 
      function breakCallback() {
@@ -231,9 +271,14 @@
          window.clearInterval(timer);
          return
        }
+       var overlay = document.getElementById('break_overlay');
        var remainingTime = Math.floor((breakEnd - Date.now()));
        if (remainingTime > 0) {
          drawTomato(0, remainingTime);
+         var text = "Break: " + formatTime(remainingTime);
+         document.title = text;
+         overlay.innerHTML = text;
+         overlay.style.visibility = "visible";
        } else {
          playDing();
          stopTimer();
@@ -241,11 +286,11 @@
      }
 
      function stopBreak() {
+       document.getElementById('break_overlay').style.visibility = "hidden";
        window.clearInterval(timer);
        var breakStart = localStorage['breakStart'];
        var breakEnd = Date.now();
        var plannedBreakEnd = localStorage['breakEnd'];
-       console.log(breakEnd, plannedBreakEnd);
        if (breakEnd > plannedBreakEnd) {
          breakEnd = plannedBreakEnd;
        }
@@ -279,6 +324,7 @@
        var remainingTime = Math.floor((pomodoroEnd - Date.now()));
        if (remainingTime > 0) {
          drawTomato(remainingTime, 0);
+         document.title = "Work: " + formatTime(remainingTime);
        } else {
          playDing();
          stopTimer();
