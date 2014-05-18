@@ -239,11 +239,15 @@
        var breakStart = localStorage['breakStart'];
        var breakEnd = Date.now();
        var plannedBreakEnd = localStorage['breakEnd'];
+       console.log(breakEnd, plannedBreakEnd);
+       if (breakEnd > plannedBreakEnd) {
+         breakEnd = plannedBreakEnd;
+       }
        var history = loadHistory();
        history.push({name: 'Break',
                      duration: breakEnd-breakStart,
                      planned: plannedBreakEnd-breakStart,
-                     time: breakEnd});
+                     time: +breakEnd}); // convert to number
        saveHistory(history);
        drawHistory(history);
        localStorage.removeItem('breakStart');
@@ -279,11 +283,14 @@
        var pomodoroStart = localStorage['pomodoroStart'];
        var pomodoroEnd = Date.now();
        var plannedPomodoroEnd = localStorage['pomodoroEnd'];
+       if (pomodoroEnd > plannedPomodoroEnd) {
+         pomodoroEnd = plannedPomodoroEnd;
+       }
        var history = loadHistory();
        history.push({name: 'Pomodoro',
                      duration: pomodoroEnd-pomodoroStart,
                      planned: plannedPomodoroEnd-pomodoroStart,
-                     time: pomodoroEnd});
+                     time: +pomodoroEnd}); // convert to number
        saveHistory(history);
        drawHistory(history);
        localStorage.removeItem('pomodoroStart');
