@@ -17,7 +17,7 @@
        display: table;
        margin: 0 auto;
      }
-     #history {
+     #history, #history_today {
        display: table;
        margin: 0 auto;
        margin-top: 40px;
@@ -54,6 +54,7 @@
       <input type="button" value="stop" onclick="stopTimer()">
       <input type="button" value="reset" onclick="clearHistory()">
     </div>
+    <table id="history_today"></table>
     <table id="history"></table>
     <script>
      var timer;
@@ -98,16 +99,27 @@
      }
 
      function drawHistory(history) {
-       var table = document.getElementById('history');
-       while (table.firstChild) {
-         table.removeChild(table.firstChild);
+       var today_table = document.getElementById('history_today');
+       var history_table = document.getElementById('history');
+       while (today_table.firstChild) {
+         today_table.removeChild(today_table.firstChild);
+       }
+       while (history_table.firstChild) {
+         historytable.removeChild(history_table.firstChild);
        }
        for (var row in history) {
          var tr = document.createElement('tr');
-         // when
+         var isToday = Date.now() - history[row].time < 24*50*60*1000;
+         // when was it completed
          var td = document.createElement('td');
-         var date = new Date(history[row].time).toLocaleString();
-         var text = document.createTextNode(date);
+         var date = new Date(history[row].time);
+         if (isToday) {
+           var localeDate = date.toLocaleTimeString();
+         } else {
+           var localeDate = date.toLocaleString();
+         }
+         localeDate = localeDate.replace(/(\d+:\d+):\d+/, '$1'); // strip seconds
+         var text = document.createTextNode(localeDate);
          td.appendChild(text);
          tr.appendChild(td);
          // type of record
@@ -128,7 +140,11 @@
          var text = document.createTextNode(percent.toFixed() + " %");
          td.appendChild(text);
          tr.appendChild(td);
-         table.appendChild(tr);
+         if (isToday) {
+           today_table.appendChild(tr);
+         } else {
+           history_table.appendChild(tr);
+         }
        }
      }
 
