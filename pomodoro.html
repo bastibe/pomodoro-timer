@@ -52,6 +52,7 @@
       <input type="button" value="Start Break:" onclick="startBreak(document.getElementById('breaktime').value*60)">
       <input type="number" value="5" style="width:100px" id="breaktime">
     </div>
+    <audio src="ding.mp3" id="ding"></audio>
     <canvas id="tomato"></canvas>
     <div id="stop_timers">
       <input type="button" value="stop" onclick="stopTimer()">
@@ -211,6 +212,10 @@
        }
      }
 
+     function playDing() {
+       document.getElementById('ding').play();
+     }
+
      function startBreak(seconds) {
        stopTimer();
        var startTime = Date.now();
@@ -230,6 +235,7 @@
        if (remainingTime > 0) {
          drawTomato(0, remainingTime);
        } else {
+         playDing();
          stopTimer();
        }
      }
@@ -274,6 +280,7 @@
        if (remainingTime > 0) {
          drawTomato(remainingTime, 0);
        } else {
+         playDing();
          stopTimer();
        }
      }
