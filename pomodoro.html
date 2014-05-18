@@ -70,13 +70,29 @@
        }
        for (var row in history) {
          var tr = document.createElement('tr');
+         // when
          var td = document.createElement('td');
-         var name = document.createTextNode(history[row][0]);
-         td.appendChild(name);
+         var date = new Date(history[row].time).toLocaleString();
+         var text = document.createTextNode(date);
+         td.appendChild(text);
          tr.appendChild(td);
+         // type of record
          var td = document.createElement('td');
-         var value = document.createTextNode(formatTime(history[row][1]));
-         td.appendChild(value);
+         var name = history[row].name;
+         var text = document.createTextNode(name);
+         td.appendChild(text);
+         tr.appendChild(td);
+         // duration
+         var td = document.createElement('td');
+         var duration = formatTime(history[row].duration);
+         var text = document.createTextNode(duration);
+         td.appendChild(text);
+         tr.appendChild(td);
+         // percent completed
+         var td = document.createElement('td');
+         var percent = Math.floor(history[row].duration / history[row].planned * 100);
+         var text = document.createTextNode(percent.toFixed() + " %");
+         td.appendChild(text);
          tr.appendChild(td);
          table.appendChild(tr);
        }
@@ -169,8 +185,12 @@
        window.clearInterval(timer);
        var breakStart = localStorage['breakStart'];
        var breakEnd = Date.now();
+       var plannedBreakEnd = localStorage['breakEnd'];
        var history = loadHistory();
-       history.push(['Pause', breakEnd-breakStart]);
+       history.push({name: 'Break',
+                     duration: breakEnd-breakStart,
+                     planned: plannedBreakEnd-breakStart,
+                     time: breakEnd});
        saveHistory(history);
        drawHistory(history);
        localStorage.removeItem('breakStart');
@@ -205,8 +225,12 @@
        window.clearInterval(timer);
        var pomodoroStart = localStorage['pomodoroStart'];
        var pomodoroEnd = Date.now();
+       var plannedPomodoroEnd = localStorage['pomodoroEnd'];
        var history = loadHistory();
-       history.push(['Pomodoro', pomodoroEnd-pomodoroStart]);
+       history.push({name: 'Pomodoro',
+                     duration: pomodoroEnd-pomodoroStart,
+                     planned: plannedPomodoroEnd-pomodoroStart,
+                     time: pomodoroEnd});
        saveHistory(history);
        drawHistory(history);
        localStorage.removeItem('pomodoroStart');
