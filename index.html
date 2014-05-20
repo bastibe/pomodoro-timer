@@ -32,7 +32,7 @@ Copyright (C) 2014 Bastian Bechtold
        margin: 0 auto;
        margin-bottom: 5px;
      }
-     #history, #history_today {
+     #history, #history_today, #history_download {
        display: table;
        margin: 0 auto;
        margin-top: 40px;
@@ -54,7 +54,7 @@ Copyright (C) 2014 Bastian Bechtold
        color: black;
        visibility: hidden;
      }
-     input {
+     input, #downloadbutton {
        background-color: #FFF5F0;
        padding: 5px 10px;
        margin-left: 10px;
@@ -114,6 +114,9 @@ Copyright (C) 2014 Bastian Bechtold
     </div>
     <table id="history_today"></table>
     <table id="history"></table>
+    <div id="history_download">
+      <a id="downloadbutton" href="" target="_blank">download</a>
+    </div>
     <div id="footer">
       This code is licensed under the GPL license. Visit <a href="http://github.com/bastibe/pomodoro-timer">Github</a> to view the source or submit feature requests.
     </div>
@@ -140,7 +143,9 @@ Copyright (C) 2014 Bastian Bechtold
 
      function loadHistory() {
        if (localStorage['pomodoroHistory']) {
-         return JSON.parse(localStorage['pomodoroHistory']);
+         var history =  JSON.parse(localStorage['pomodoroHistory']);
+         updateDownloadButton(history);
+         return history;
        } else {
          return [];
        }
@@ -148,6 +153,13 @@ Copyright (C) 2014 Bastian Bechtold
 
      function saveHistory(history) {
        localStorage['pomodoroHistory'] = JSON.stringify(history);
+       updateDownloadButton(history);
+     }
+
+     function updateDownloadButton(history) {
+       var download = document.getElementById('downloadbutton');
+         download.href = 'data:text/json;charset=utf-8;,' + encodeURIComponent(JSON.stringify(history));
+         download.download = 'history.json';
      }
 
      function clearHistory() {
