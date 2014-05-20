@@ -132,6 +132,7 @@ Copyright (C) 2014 Bastian Bechtold
          timer = window.setInterval(pomodoroCallback, 50);
        } else if (localStorage['breakStart'] && localStorage['breakEnd']) {
          timer = window.setInterval(breakCallback, 50);
+         drawTomato(0, 0);
        } else {
          drawTomato(0, 0);
        }
@@ -310,11 +311,12 @@ Copyright (C) 2014 Bastian Bechtold
        var overlay = document.getElementById('break_overlay');
        var remainingTime = Math.floor((breakEnd - Date.now()));
        if (remainingTime > 0) {
-         drawTomato(0, remainingTime);
          var text = "Break: " + formatTime(remainingTime);
-         document.title = text;
-         overlay.innerHTML = text;
-         overlay.style.visibility = "visible";
+         if (text !== document.title) {
+           document.title = text;
+           overlay.innerHTML = text;
+           overlay.style.visibility = "visible";
+         }
        } else {
          playDing();
          stopBreak();
@@ -360,8 +362,11 @@ Copyright (C) 2014 Bastian Bechtold
        }
        var remainingTime = Math.floor((pomodoroEnd - Date.now()));
        if (remainingTime > 0) {
-         drawTomato(remainingTime, 0);
-         document.title = "Work: " + formatTime(remainingTime);
+         var text = "Work: " + formatTime(remainingTime)
+         if (document.title !== text) {
+           document.title = text;
+           drawTomato(remainingTime, 0);
+         }
        } else {
          playDing();
          stopPomodoro();
