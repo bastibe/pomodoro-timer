@@ -54,7 +54,7 @@ Copyright (C) 2014 Bastian Bechtold
        color: black;
        visibility: hidden;
      }
-     input, #downloadbutton {
+     .button {
        background-color: #FFF5F0;
        padding: 5px 10px;
        margin-left: 10px;
@@ -73,8 +73,16 @@ Copyright (C) 2014 Bastian Bechtold
        padding: 10px 20px;
        border: 1px solid #CCC;
      }
-     body {
-       padding-bottom: 30px;
+     #history_download {
+       display: table;
+       position: relative;
+       margin-top: 50px;
+       bottom: 30px;
+       padding: 5px 10px;
+       font-family: Calibri, sans-serif;
+       font-size: 20px;
+       border-radius: 5px;
+       color: darkred;
      }
      #footer {
        position: fixed;
@@ -92,15 +100,15 @@ Copyright (C) 2014 Bastian Bechtold
   </head>
   <body onload="init()">
     <div id="start_timers">
-      <input type="button" value="25 Minutes" onclick="startPomodoro(25*60)">
-      <input type="button" value="5 Minute break" onclick="startBreak(5*60)">
-      <input type="button" value="1 Hour break" onclick="startBreak(60*60)">
+      <input class="button" type="button" value="25 Minutes" onclick="startPomodoro(25*60)">
+      <input class="button" type="button" value="5 Minute break" onclick="startBreak(5*60)">
+      <input class="button" type="button" value="1 Hour break" onclick="startBreak(60*60)">
     </div>
     <div id="start_custom_timers">
-      <input type="button" value="Start Work:" onclick="startPomodoro(document.getElementById('pomodorotime').value*60)">
-      <input type="number" value="25" style="width:100px;margin-right:30px" id="pomodorotime">
-      <input type="button" value="Start Break:" onclick="startBreak(document.getElementById('breaktime').value*60)">
-      <input type="number" value="5" style="width:100px" id="breaktime">
+      <input class="button" type="button" value="Start Work:" onclick="startPomodoro(document.getElementById('pomodorotime').value*60)">
+      <input class="button" type="number" value="25" style="width:100px;margin-right:30px" id="pomodorotime">
+      <input class="button" type="button" value="Start Break:" onclick="startBreak(document.getElementById('breaktime').value*60)">
+      <input class="button" type="number" value="5" style="width:100px" id="breaktime">
     </div>
     <audio src="ding.mp3" id="ding"></audio>
     <div>
@@ -109,13 +117,14 @@ Copyright (C) 2014 Bastian Bechtold
       </div>
     </div>
     <div id="stop_timers">
-      <input type="button" value="stop" onclick="stopTimer()">
-      <input type="button" value="reset" onclick="clearHistory()">
+      <input class="button" type="button" value="stop" onclick="stopTimer()">
+      <input class="button" type="button" value="reset" onclick="clearHistory()">
     </div>
     <table id="history_today"></table>
     <table id="history"></table>
     <div id="history_download">
-      <a id="downloadbutton" href="" target="_blank">download</a>
+      <a id="downloadbutton" style="color:darkred;padding-right:10px;padding-left:50px;" href="" target="_blank">Download History</a>
+      <input type="file" style="font-size:16px;line-height:20px;" accept=".json" onchange="uploadHistory(this.files)">
     </div>
     <div id="footer">
       This code is licensed under the GPL license. Visit <a href="http://github.com/bastibe/pomodoro-timer">Github</a> to view the source or submit feature requests.
@@ -147,6 +156,7 @@ Copyright (C) 2014 Bastian Bechtold
          updateDownloadButton(history);
          return history;
        } else {
+         updateDownloadButton([]);
          return [];
        }
      }
@@ -156,10 +166,42 @@ Copyright (C) 2014 Bastian Bechtold
        updateDownloadButton(history);
      }
 
+     function uploadHistory(files) {
+       console.log("uploading history...");
+       var file = files[0];
+       if (!file) {
+         console.log("Could not load history file: No file selected");
+         return;
+       }
+       var reader = new FileReader();
+       reader.readAsText(file);
+       reader.onloadend = function () {
+         var history = JSON.parse(reader.result);
+         for (row in history) {
+           if (!(typeof(history[row].name) === "string" &&
+                 typeof(history[row].duration) === "number" &&
+                 typeof(history[row].planned) === "number" &&
+                 typeof(history[row].time) === "number")) {
+             console.log("Could not load history file: Format not valid");
+             return;
+           }
+         }
+         saveHistory(history);
+         drawHistory(history);
+         console.log("upload complete.");
+       }
+     }
+
      function updateDownloadButton(history) {
        var download = document.getElementById('downloadbutton');
-         download.href = 'data:text/json;charset=utf-8;,' + encodeURIComponent(JSON.stringify(history));
-         download.download = 'history.json';
+       var div = document.getElementById('history_download');
+       if (history.length > 0) {
+         div.style.visibility = "visible";
+       } else {
+         div.style.visibility = "hidden";
+       }
+       download.href = 'data:text/json;charset=utf-8;,' + encodeURIComponent(JSON.stringify(history));
+       download.download = 'history.json';
      }
 
      function clearHistory() {
@@ -169,6 +211,7 @@ Copyright (C) 2014 Bastian Bechtold
        localStorage.removeItem('breakStart');
        localStorage.removeItem('breakEnd');
        drawHistory([]);
+       updateDownloadButton([]);
        drawTomato(0, 0);
      }
 
