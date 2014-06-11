@@ -128,17 +128,22 @@ Copyright (C) 2014 Bastian Bechtold
       <input class="button" type="button" value="1 Hour break" onclick="startBreak(60*60)">
     </div>
     <div id="start_custom_timers">
-      <input class="button" type="button" value="Start Work:" onclick="startPomodoro(document.getElementById('pomodorotime').value*60)">
-      <input class="button" type="number" value="25" style="width:100px;margin-right:30px" id="pomodorotime">
-      <input class="button" type="button" value="Start Break:" onclick="startBreak(document.getElementById('breaktime').value*60)">
-      <input class="button" type="number" value="5" style="width:100px" id="breaktime">
+      <input class="button" type="button" value="Start Work:"
+             onclick="startPomodoro(document.getElementById('pomodorotime').value*60)">
+      <input class="button" type="number" value="25" style="width:100px;margin-right:30px" id="pomodorotime"
+             onkeydown="if (event.keyCode==13) startPomodoro(document.getElementById('pomodorotime').value*60)">
+      <input class="button" type="button" value="Start Break:"
+             onclick="startBreak(document.getElementById('breaktime').value*60)">
+      <input class="button" type="number" value="5" style="width:100px" id="breaktime"
+             onkeydown="if (event.keyCode==13) startBreak(document.getElementById('breaktime').value*60)">
     </div>
     <audio src="ding.mp3" id="ding"></audio>
     <div>
       <canvas id="tomato"></canvas>
       <div id="break_overlay">
       </div>
-      <div id="task_label" style="margin-bottom: 10px;">Task: <input type="text" id="task_name" placeholder="Pomodoro"></div>
+      <div id="task_label" style="margin-bottom: 10px;">Task:
+        <input type="text" id="task_name" placeholder="Pomodoro" onkeydown="if (event.keyCode==13) this.blur()"/>
     </div>
     <div id="stop_timers">
       <input class="button" type="button" value="stop" onclick="stopTimer()">
@@ -149,7 +154,9 @@ Copyright (C) 2014 Bastian Bechtold
     <div id="history_label">History:</div>
     <table id="history"></table>
     <div id="history_download">
-      <a id="downloadbutton" style="color:darkred;padding-right:10px;padding-left:50px;" href="" target="_blank"><button style="font-size:16px;line-height:20px">Download History</button></a>
+      <a id="downloadbutton" style="color:darkred;padding-right:10px;padding-left:50px;" href="" target="_blank">
+        <button style="font-size:16px;line-height:20px">Download History</button>
+      </a>
       Upload:
       <input type="file" style="font-size:16px;line-height:20px;" accept=".json" onchange="uploadHistory(this.files)">
     </div>
