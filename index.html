@@ -35,7 +35,6 @@ Copyright (C) 2014 Bastian Bechtold
      #history, #history_today, #history_download {
        display: table;
        margin: 0 auto;
-       margin-top: 40px;
      }
      #break_overlay {
        position: absolute;
@@ -73,7 +72,15 @@ Copyright (C) 2014 Bastian Bechtold
        padding: 10px 20px;
        border: 1px solid #CCC;
      }
-     #history_download {
+     #history_label, #history_label_today {
+       padding: 5px 10px;
+       font-family: Calibri, sans-serif;
+       font-size: 20px;
+       border-radius: 5px;
+       color: darkred;
+       text-align: center;
+     }
+     #history_download  {
        display: table;
        position: relative;
        margin-top: 50px;
@@ -120,7 +127,9 @@ Copyright (C) 2014 Bastian Bechtold
       <input class="button" type="button" value="stop" onclick="stopTimer()">
       <input class="button" type="button" value="reset" onclick="clearHistory()">
     </div>
+    <div id="history_label_today">Today:</div>
     <table id="history_today"></table>
+    <div id="history_label">History:</div>
     <table id="history"></table>
     <div id="history_download">
       <a id="downloadbutton" style="color:darkred;padding-right:10px;padding-left:50px;" href="" target="_blank"><button style="font-size:16px;line-height:20px">Download History</button></a>
@@ -263,6 +272,18 @@ Copyright (C) 2014 Bastian Bechtold
          } else {
            history_table.appendChild(tr);
          }
+       }
+       var today_label = document.getElementById('history_label_today');
+       if (today_table.childElementCount === 0) {
+         today_label.style.visibility = "hidden";
+       } else {
+         today_label.style.visibility = "visible";
+       }
+       var history_label = document.getElementById('history_label');
+       if (history_table.childElementCount === 0) {
+         history_label.style.visibility = "hidden";
+       } else {
+         history_label.style.visibility = "visible";
        }
      }
 
