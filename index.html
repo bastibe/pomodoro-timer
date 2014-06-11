@@ -53,6 +53,22 @@ Copyright (C) 2014 Bastian Bechtold
        color: black;
        visibility: hidden;
      }
+     #task_label {
+       position: absolute;
+       width: 300px;
+       left: calc(50% - 150px);
+       text-align: center;
+       top: 430px;
+       font-family: Calibri, sans-serif;
+       font-size: 20px;
+       color: darkred;
+       visibility: hidden;
+     }
+     #task_name {
+       font-family: Calibri, sans-serif;
+       font-size: 18px;
+       color: black;
+     }
      .button {
        background-color: #FFF5F0;
        padding: 5px 10px;
@@ -122,6 +138,7 @@ Copyright (C) 2014 Bastian Bechtold
       <canvas id="tomato"></canvas>
       <div id="break_overlay">
       </div>
+      <div id="task_label" style="margin-bottom: 10px;">Task: <input type="text" id="task_name" placeholder="Pomodoro"></div>
     </div>
     <div id="stop_timers">
       <input class="button" type="button" value="stop" onclick="stopTimer()">
@@ -443,6 +460,8 @@ Copyright (C) 2014 Bastian Bechtold
          if (document.title !== text) {
            document.title = text;
            drawTomato(remainingTime, 0);
+           var task_label = document.getElementById('task_label');
+           task_label.style.visibility = "visible";
          }
        } else {
          playDing();
@@ -460,15 +479,22 @@ Copyright (C) 2014 Bastian Bechtold
          pomodoroEnd = plannedPomodoroEnd;
        }
        var history = loadHistory();
-       history.unshift({name: 'Pomodoro',
+       var task_name = document.getElementById('task_name');
+       if (task_name.value.length === 0) {
+         task_name.value = 'Pomodoro';
+       }
+       history.unshift({name: task_name.value,
                         duration: pomodoroEnd-pomodoroStart,
                         planned: plannedPomodoroEnd-pomodoroStart,
                         time: +pomodoroEnd}); // convert to number
+       task_name.value = '';
        saveHistory(history);
        drawHistory(history);
        localStorage.removeItem('pomodoroStart');
        localStorage.removeItem('pomodoroEnd');
        drawTomato(0, 0);
+       var task_label = document.getElementById('task_label');
+       task_label.style.visibility = "hidden";
      }
 
      function stopTimer() {
