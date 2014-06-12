@@ -260,10 +260,13 @@ Copyright (C) 2014 Bastian Bechtold
        }
        for (var row in history) {
          var tr = document.createElement('tr');
-         var isToday = Date.now() - history[row].time < 24*50*60*1000;
+         var today = new Date(Date.now());
+         var date = new Date(history[row].time);
+         var isToday = today.getFullYear() == date.getFullYear() && // year
+                       today.getMonth() == date.getMonth() &&       // month
+                       today.getDate() == date.getDate();           // day
          // when was it completed
          var td = document.createElement('td');
-         var date = new Date(history[row].time);
          if (isToday) {
            var localeDate = date.toLocaleTimeString();
          } else {
